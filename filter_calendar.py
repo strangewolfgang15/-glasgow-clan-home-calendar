@@ -142,38 +142,49 @@ def build_calendar(source_text: str, add_reminders: bool = True) -> tuple[str, l
         keep, reason = is_home_event(event)
         log.append(f"{'KEEP' if keep else 'SKIP'}: {summary} [{reason}]")
         if keep:
-    nicer_summary = summary
+            nicer_summary = summary
 
-    if "Pre-Season |" in nicer_summary:
-        nicer_summary = nicer_summary.replace(
-            "Pre-Season | Glasgow Clan vs",
-            "🟣 Pre-Season: Clan vs",
-        )
-    elif "Glasgow Clan (CC) vs" in nicer_summary:
-        nicer_summary = nicer_summary.replace(
-            "Glasgow Clan (CC) vs",
-            "🏆 Challenge Cup: Clan vs",
-        )
-    else:
-        nicer_summary = nicer_summary.replace(
-            "Glasgow Clan vs",
-            "🏒 Clan vs",
-        )
+            if "Pre-Season |" in nicer_summary:
+                nicer_summary = nicer_summary.replace(
+                    "Pre-Season | Glasgow Clan vs",
+                    "🟣 Pre-Season: Clan vs",
+                )
+            elif "Glasgow Clan (CC) vs" in nicer_summary:
+                nicer_summary = nicer_summary.replace(
+                    "Glasgow Clan (CC) vs",
+                    "🏆 Challenge Cup: Clan vs",
+                )
+            else:
+                nicer_summary = nicer_summary.replace(
+                    "Glasgow Clan vs",
+                    "🏒 Clan vs",
+                )
 
-    updated_event = []
-    for line in event:
-        if line.startswith("SUMMARY:"):
-            updated_event.append(f"SUMMARY:{escape_ical_text(nicer_summary)}")
-        else:
-            updated_event.append(line)
+            updated_event = []
 
-    event = updated_event
+            for line in event:
+                if line.startswith("SUMMARY:"):
+                    updated_event.append(
+                        f"SUMMARY:{escape_ical_text(nicer_summary)}"
+                    )
+                else:
+                    updated_event.append(line)
 
-    if add_reminders:
-        event = add_alarm(event, "-P1D", f"{nicer_summary} tomorrow")
-        event = add_alarm(event, "-PT2H", f"{nicer_summary} in 2 hours")
+            event = updated_event
 
-    kept.append(event)
+            if add_reminders:
+                event = add_alarm(
+                    event,
+                    "-P1D",
+                    f"{nicer_summary} tomorrow",
+                )
+                event = add_alarm(
+                    event,
+                    "-PT2H",
+                    f"{nicer_summary} in 2 hours",
+                )
+
+            kept.append(event)
 
     # Give the subscribed calendar a useful name while preserving source settings.
     new_header: list[str] = []
