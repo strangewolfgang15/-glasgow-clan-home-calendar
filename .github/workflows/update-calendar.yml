@@ -1,0 +1,43 @@
+name: Update home fixtures calendar
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-home-calendar
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Download and filter fixtures
+        run: python filter_calendar.py
+
+      - name: Commit calendar changes
+        run: |
+          if git diff --quiet -- docs/glasgow-clan-home.ics; then
+            echo "No fixture changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/glasgow-clan-home.ics
+          git commit -m "Update Glasgow Clan home fixtures"
+          git push
